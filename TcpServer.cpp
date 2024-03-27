@@ -55,6 +55,17 @@ void TcpServer::setListen()
         perror("listen");
         return ;
     }
+    // 5. 输出监听端口的ip:port
+    struct sockaddr_in listenAddr;
+    socklen_t listenAddrLen = sizeof(listenAddr);
+    ret = getsockname(m_lfd, (struct sockaddr *)&listenAddr, &listenAddrLen);
+    if(ret == -1)
+    {
+        printf("getsockname error\n");
+        exit(0);
+    }
+    printf("listening address = %s:%d\n", inet_ntoa(listenAddr.sin_addr), ntohs(listenAddr.sin_port));
+
 }
 
 int TcpServer::acceptConnection(void* arg)
@@ -62,6 +73,18 @@ int TcpServer::acceptConnection(void* arg)
     TcpServer* server = static_cast<TcpServer*>(arg); // 将void*类型转换成TcpServer*类型
     // 和客户端建立连接
     int cfd = accept(server->m_lfd, NULL, NULL);
+
+    // 输出客户端的ip:port
+    struct sockaddr_in connectedAddr;
+    socklen_t connectedAddrLen = sizeof(connectedAddr);
+    int ret = getsockname(cfd, (struct sockaddr *)&connectedAddr, &connectedAddrLen);
+    if(ret == -1)
+    {
+        printf("getsockname error\n");
+        exit(0);
+    }
+    printf("connected address = %s:%d\n", inet_ntoa(connectedAddr.sin_addr), ntohs(connectedAddr.sin_port));
+
     // 从线程池中取出一个子线程的从反应堆实例, 去处理这个cfd（按顺序取出反应堆）
     EventLoop* evLoop = server->m_threadPool->takeWorkerEventLoop();
     // 将cfd放到 TcpConnection中处理，传入反应堆对象的指针evLoop
