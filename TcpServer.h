@@ -14,7 +14,7 @@ public:
 
 private:
     int m_threadNum;
-    EventLoop* m_mainLoop;
+    EventLoop* m_mainLoop; // 主反应堆
     ThreadPool* m_threadPool; // 线程池
     int m_lfd;
     unsigned short m_port;

@@ -18,7 +18,9 @@ enum class FDEvent
 class Channel
 {
 public:
+    // 起别名
     using handleFunc = std::function<int(void*)>;
+    // 构造函数，函数的第3/4/5个参数是个可调用对象的包装器类型（类似函数指针），使得可调用对象可以像普通函数一样被调用
     Channel(int fd, FDEvent events, handleFunc readFunc, handleFunc writeFunc, handleFunc destroyFunc, void* arg);
     // 回调函数
     handleFunc readCallback;
@@ -28,7 +30,7 @@ public:
     void writeEventEnable(bool flag);
     // 判断是否需要检测文件描述符的写事件
     bool isWriteEventEnable();
-    // 取出私有成员的值
+    // 取出私有成员的值（接口）
     inline int getEvent()
     {
         return m_events;
@@ -43,7 +45,7 @@ public:
     }
 private:
     // 文件描述符
-    int m_fd;
+    int m_fd; // 事件的文件描述符
     // 事件
     int m_events;
     // 回调函数的参数

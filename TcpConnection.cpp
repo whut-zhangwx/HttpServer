@@ -6,6 +6,7 @@
 
 int TcpConnection::processRead(void* arg)
 {
+    // 传入的arg参数是个TcpConnection对象的this指针，将arg从void*转换成TcpConnection类型
     TcpConnection* conn = static_cast<TcpConnection*>(arg);
     // 接收数据
     int socket = conn->m_channel->getSocket();
@@ -76,6 +77,10 @@ int TcpConnection::destroy(void* arg)
     return 0;
 }
 
+// 在TcpServer::acceptConnection中被调用
+// fd是连接客户端socket的文件描述符
+// evloop是从ThreadPool::m_workerThreads线程池vector中取出的子线程的反应堆;
+// m_workerThreads[m_index]->getEventLoop();
 TcpConnection::TcpConnection(int fd, EventLoop* evloop)
 {
     m_evLoop = evloop;
@@ -86,6 +91,8 @@ TcpConnection::TcpConnection(int fd, EventLoop* evloop)
     m_response = new HttpResponse;
     m_name = "Connection-" + to_string(fd);
     m_channel = new Channel(fd, FDEvent::ReadEvent, processRead, processWrite, destroy, this);
+    // 调用子线程的从反应堆的addTask()方法，将m_channel添加到从反应堆的任务队列m_taskQ中
+    // 后续子线程会依次对m_taskQ中的任务进行监听，并做相应处理
     evloop->addTask(m_channel, ElemType::ADD);
 }
 

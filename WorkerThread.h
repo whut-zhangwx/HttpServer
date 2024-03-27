@@ -9,10 +9,9 @@ using namespace std;
 class WorkerThread
 {
 public:
-    WorkerThread(int index); // 构造函数
-    ~WorkerThread();
-    // 启动线程
-    void run();
+    WorkerThread(int index); // 构造函数，index表示当前线程是线程池中的第几个
+    ~WorkerThread(); // 析构函数
+    void run(); // 启动线程
     inline EventLoop* getEventLoop()
     {
         return m_evLoop;
@@ -23,10 +22,10 @@ private:
 
 private:
     thread* m_thread;   // 保存线程的实例
-    thread::id m_threadID; // ID
-    string m_name;
+    thread::id m_threadID; // 线程ID
+    string m_name; // 线程的name
     mutex m_mutex;  // 互斥锁
-    condition_variable m_cond;    // 条件变量
-    EventLoop* m_evLoop;   // 反应堆模型
+    condition_variable m_cond; // 条件变量
+    EventLoop* m_evLoop; // 反应堆模型
 };
 

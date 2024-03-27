@@ -6,6 +6,7 @@ Channel::Channel(int fd, FDEvent events, handleFunc readFunc, handleFunc writeFu
     m_arg = arg;
     m_fd = fd;
     m_events = (int)events;
+    // 回调函数
     readCallback = readFunc;
     writeCallback = writeFunc;
     destroyCallback = destroyFunc;

@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     chdir(argv[2]);
 #else
     unsigned short port = 10000;
-    chdir("/home/zwx/SimpleHttp/SimpleHttp/source");
+    chdir("./source");
 #endif
     // 启动服务器
     TcpServer* server = new TcpServer(port, 4);

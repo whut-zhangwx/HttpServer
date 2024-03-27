@@ -7,7 +7,7 @@
 
 EpollDispatcher::EpollDispatcher(EventLoop* evloop) : Dispatcher(evloop)
 {
-    m_epfd = epoll_create(10);
+    m_epfd = epoll_create(10); // 创建epoll的事件监听表
     if (m_epfd == -1)
     {
         perror("epoll_create");
@@ -36,6 +36,7 @@ int EpollDispatcher::add()
 
 int EpollDispatcher::remove()
 {
+    // 调用epollCtl进行删除
     int ret = epollCtl(EPOLL_CTL_DEL);
     if (ret == -1)
     {
@@ -98,6 +99,7 @@ int EpollDispatcher::epollCtl(int op)
         events |= EPOLLOUT;
     }
     ev.events = events;
+    // m_epfd是成员变量
     int ret = epoll_ctl(m_epfd, op, m_channel->getSocket(), &ev);
     return ret;
 }

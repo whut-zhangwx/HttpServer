@@ -17,7 +17,7 @@ public:
     EventLoop* takeWorkerEventLoop();
 private:
     // 主线程的反应堆模型
-    EventLoop* m_mainLoop;
+    EventLoop* m_mainLoop; // 反应堆
     bool m_isStart;
     int m_threadNum;
     vector<WorkerThread*> m_workerThreads;
