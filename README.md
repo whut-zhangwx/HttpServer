@@ -26,18 +26,18 @@ localhost:10000
   main.cpp中new了一个TcpServer对象，并调用它的run()方法用来启动整个项目。
 
 - TcpServer对象所做的事情
-  一个TcpServer对象将创建（使用new方法）一个线程池m_threadPool（指向ThreadPool类对象的指针）和一个主反应堆m_mainLoop（指向EventLoop类对象的指针），并运行线程池和主反应堆。
+  一个TcpServer对象将创建（使用new方法）一个线程池m_threadPool（指向ThreadPool类对象的指针）和一个主反应堆m_mainLoop（指向EventLoop类对象的指针），并运行线程池和主反应堆（在run()方法中）。其次它创建一个监听用的socket（m_lfd）（在setListen()中），并将m_lfd封装为channel对象添加到主反应堆m_mainLoop的任务队列m_taskQ中。
 
 - 主反应堆的作用
-  TcpServer::run()通过调用m_mainLoop->addTask()向主反应堆m_mainLoop中添加一个channel对象（添加到主反应堆的任务队列m_taskQ中），channel中封装了监听用的socket的fd（服务端的socket），它对应的事件类型FDEvent::ReadEvent（自定义的枚举类型），以及回调函数acceptConnection（事件FDEvent::ReadEvent类型对应的回调函数readFunc）。
+  TcpServer::run()通过调用m_mainLoop->addTask()向主反应堆m_mainLoop中添加一个封装有m_lfd（监听socket的文件描述符）的channel对象（添加到主反应堆的任务队列m_taskQ中），它对应的事件类型FDEvent::ReadEvent（自定义的枚举类型），以及回调函数acceptConnection（事件FDEvent::ReadEvent类型对应的回调函数readFunc）。
   
-  在主反应堆中，反应堆会通过processTask()方法将m_taskQ中的channel取出并注册添加到select的位数组（事件监听表）中，通过SelectDispatcher对象调用select方法对监听事件表中注册的事件进行监听。当监听到事件的发生后，会根据事件的fd找到m_channelMap中对应的channel对象，然后根据channel对象中的events（事件类型）来选择调用处理函数（实际就是TcpServer::acceptConnection）。
+  在主反应堆中，当主反应堆开始运行run()，程序会进入一个while循环。在while循环中反应堆会通过processTask()方法将任务队列m_taskQ中的channel对象取出并注册添加到select的位数组（事件监听表）中，通过SelectDispatcher对象调用select方法对监听事件表中注册的事件进行监听。当监听到事件的发生后，会根据事件的fd找到m_channelMap中对应的channel对象（封装了m_lfd的channel），然后根据channel对象中的events（事件类型）来选择调用处理函数（实际就是TcpServer::acceptConnection）。
 
 - ThreadPool线程池的作用
   在TcpServer对象的构造函数中会创建ThreadPool对象m_threadPool，在TcpServer::run()方法中，调用创建的线程池的run()方法m_threadPool->run()来启动整个线程池。在ThreadPool::run()中，会创建（new）m_threadNum个WorkerThread（工作线程）类对象，将它们的指针存储在m_workerThreads中（vecotr类型），并且调用WorkerThread::run()来启动这些工作线程。
 
 - WorkerThread的作用
-  一个WorkerThread对象就对应着一个子线程，它主要包含一个从反应堆成员，和子线程要运行的回调函数running()。通过调用run()方法来创建一个子线程运行running()。子线程中主要运行着从反应堆。
+  一个WorkerThread对象就对应着一个子线程，它主要包含一个从反应堆成员，和子线程要运行的回调函数running()。通过new thread(running, this)方法来创建一个子线程，子线程调用running()，其中运行着从反应堆（while循环）。
 
   在WorkerThread::run()中，我们会使用C++的std::thread方法来创建子线程，子线程执行WorkerThread::running()函数。在running()中，子线程会为WorkerThread创建一个从反应堆（EventLoop对象），并且启动这个从反应堆。
   创建完子线程的WorkerThread::run()会结束调用并返回（void），子线程继续运行WorkerThread::running()，直到使用某些方法结束其中从反应堆的while循环。
